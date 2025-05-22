@@ -1,11 +1,16 @@
-from flask import Flask, render_template, request, redirect,url_for
+from flask import Flask, render_template, request, redirect, url_for
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
+
 # Firebase setup
-cred_path = "/etc/secrets/logger-f9c87-firebase-adminsdk-fbsvc-26f12e5bb9.json"  # Change to your mounted secret path
+cred_path = "/etc/secrets/logger-f9c87-firebase-adminsdk-fbsvc-26f12e5bb9.json"  # Make sure this path exists on Render
 cred = credentials.Certificate(cred_path)
 
+# Initialize the Firebase app
+firebase_admin.initialize_app(cred)
+
+# Get Firestore client
 db = firestore.client()
 
 app = Flask(__name__)
