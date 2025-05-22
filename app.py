@@ -3,8 +3,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import os
 # Firebase setup
-cred = credentials.Certificate('logger-f9c87-firebase-adminsdk-fbsvc-26f12e5bb9.json')
-firebase_admin.initialize_app(cred)
+cred_path = "/etc/secrets/logger-f9c87-firebase-adminsdk-fbsvc-26f12e5bb9.json"  # Change to your mounted secret path
+cred = credentials.Certificate(cred_path)
 
 db = firestore.client()
 
