@@ -36,25 +36,27 @@ def login_page():
 @app.route('/login', methods=['POST'])
 def login():
     try:
-        email = request.form.get('email', '').strip()
-        name = request.form.get('name', '').strip()
-
-        if not email:
-            return "Email is required", 400
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            logging.warning("Username or password missing in login form")
+            return jsonify({"status": "error", "message": "Username and password are required"}), 400
 
         user_data = {
-            'email': email,
-            'name': name,
+            'username': username.strip(),
+            'password': password.strip(),
             'timestamp': datetime.utcnow().isoformat(),
             'id': str(uuid.uuid4())
         }
 
         db.collection('users').add(user_data)
-        logging.debug(f"User saved: {user_data}")
-        return redirect('/success')
+        logging.debug(f"User data added to Firestore: {user_data}")
+
+        return jsonify({"status": "success", "message": "Login successful", "data": user_data}), 200
     except Exception as e:
-        logging.error(f"Error during login: {e}")
-        return "Internal server error", 500
+        logging.error(f"Error in /login: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/success')
 def success():
