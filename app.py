@@ -46,35 +46,27 @@ except Exception as e:
 @app.before_request
 def log_request_info():
     """Log details of incoming requests."""
-    logging.debug(f"Request: {request.method} {request.url} - Form: {request.form} - JSON: {request.get_json(silent=True)} - Headers: {dict(request.headers)}")
+    logging.debug(f"Request: {request.method} {request.url} - Body: {request.get_json(silent=True) or request.form}")
 
 # Root endpoint to render login page
 @app.route('/', methods=['GET'])
 def login_page():
     """Renders the login page."""
-    return render_template('login.html', error=None)
+    return render_template('login.html')
 
 # Login endpoint to handle form submissions
 @app.route('/login', methods=['POST'])
 def login():
     """Handles login form submissions."""
     try:
-        # Log the entire request for debugging
-        logging.debug(f"Login request - Form data: {request.form}")
-        
         # Get form data
         email = request.form.get('email')
-        name = request.form.get('name')
-        
-        if not request.form:
-            logging.warning("No form data received in /login")
-            return render_template('login.html', error="No form data provided")
-        
+        name = request.form.get('name')  # Optional, depending on your form
         if not email:
             logging.warning("Email not provided in login form")
-            return render_template('login.html', error="Email is required")
+            return jsonify({"status": "error", "message": "Email is required"}), 400
         
-        # Store user data in Firestore
+        # Store user data in Firestore (or implement your authentication logic)
         user_data = {
             'email': email.strip(),
             'name': name.strip() if name else '',
@@ -84,18 +76,11 @@ def login():
         db.collection('users').add(user_data)
         logging.debug(f"User data added to Firestore: {user_data}")
         
-        # Redirect to dashboard
-        return redirect(url_for('dashboard', email=user_data['email']))
+        # Redirect to a success page or dashboard (modify as needed)
+        return jsonify({"status": "success", "message": "Login successful", "data": user_data}), 200
     except Exception as e:
         logging.error(f"Error in /login: {str(e)}")
-        return render_template('login.html', error=str(e))
-
-# Dashboard endpoint after successful login
-@app.route('/dashboard')
-def dashboard():
-    """Renders the dashboard page after login."""
-    email = request.args.get('email', 'Guest')
-    return render_template('dashboard.html', email=email)
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Submit endpoint for API-based data submission
 @app.route('/submit', methods=['POST'])
